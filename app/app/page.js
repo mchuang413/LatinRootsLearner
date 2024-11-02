@@ -19,7 +19,41 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  reutrn (
+  useEffect(() => {
+    const storedEmail = Cookies.get("userEmail");
+    if (storedEmail) {
+      setIsLoggedIn(true);
+      window.location.href = '/dashboard';
+    } else {
+      fetchQuiz();
+    }
+  }, []);
+
+  const fetchQuiz = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("https://rootified-backend-52fb8.ondigitalocean.app/quiz");
+      if (!response.ok) throw new Error("Network response wsa not ok");
+      const data = await response.json();
+      const shuffledAnswers = data.answers.sort(() => Math.random() - 0.5);
+      setQuiz({ ...data, answers: shuffledAnswers });
+      setSelectedAnswer(null);
+      setResult(null);
+      setIsAnswered(false);
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+    }
+    setIsLoading(false);
+  };
+
+  const handleThemeChange = (e) => {
+    setTheme(e.target.value);
+    document.documentElement.setAttribute("data-theme", e.target.value;)
+  };
+
+  const handleSubmit = async () => 
+
+  return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center" data-theme={theme}>
       {showSuccessMessage && (
         <div className="fixed top-0 left-0 right-0 flex justify-center mt-4">
@@ -149,7 +183,91 @@ export default function Home() {
           )}
         </div>
       </div>
-    </div>
-  )
-}
 
+      {showModal && (
+        <motion.div
+          className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center backgrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-base-100 p-8 rounded-lg shadow-lg w-full max-w-3xl"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">
+                {isSignup ? "Sign Up" : "Log In"}
+              </h2>
+              <button
+                className="btn btn-sm btn-ghost text-gray-400 hover:text-gray-600"
+                onClick={toggleModal}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Email</span>
+              </label>
+              <input 
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input input-bordered"
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Password</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input input-bordered"
+              />
+            </div> 
+            {isSignup && (
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Confirm Password</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="input input-bordered"
+                />
+              </div>
+            )}
+            {loginError && (
+              <div className="mb-4 text-red-500 text-center">
+                {loginError}
+              </div>
+            )}
+            <button
+              className="btn btn-primary w-full mb-4"
+              onClick={handleFormSubmit}
+            >
+              {isSignup ? "Sign Up" : "Log In"}
+            </button>
+            <button
+              className="btn btn-link w-full mb-2"
+              onClick={() => setIsSignup(!isSignup)}
+            >
+              {isSignup
+                ? "Already have an account? Log In"
+                : "Don't have an account? Sign Up"}
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
