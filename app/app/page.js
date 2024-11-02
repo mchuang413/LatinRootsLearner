@@ -48,10 +48,77 @@ export default function Home() {
 
   const handleThemeChange = (e) => {
     setTheme(e.target.value);
-    document.documentElement.setAttribute("data-theme", e.target.value;)
+    document.documentElement.setAttribute("data-theme", e.target.value);
   };
 
-  const handleSubmit = async () => 
+  const handleSubmit = async () => {
+    if (selectedAnswer && !isAnswered) {
+      setIsAnswered(true);
+      const isCorrect = selectedAnswer === quiz.correct_answer;
+      setResult(isCorrect ? "Correct!" : "");
+
+      try {
+        const response = await fetch(`https://rootified-backend-52fb8.ondigitalocean.app/${isCorrect ? "correct" : "incorrect"}`, {
+          method: "POST",
+          headers: { "Content-Type" : "application/json" },
+          body: JSON.stringify({ email: Cookies.get('userEmail'), word: quiz.question }),
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+      } catch (error) {
+          console.error("Error submitting answer:", error);
+        }
+      }
+    };
+
+  const handleNextQuestion = () => {
+    fetchQuiz();
+  };
+
+  const toggleModal = () => {
+    setShowModal(!showModal);
+    setIsSignup(false);
+    setLoginError("");
+  };
+
+  const handleFormSubmit = async () => {
+    if (isSignup && password !== confirmPassword) {
+      return;
+    }
+
+    const url = isSignup ?  "https://rootified-backend-52fb8.ondigitalocean.app/register" : "https://rootified-backend-52fb8.ondigitalocean.app/login";
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type" : "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        Cookies.set('userEmail', email, { expires: 1 });
+        setIsLoggedIn(true);
+        const successMessage = isSignup ? "Sucessful account creation" : "Sucessful login";
+        setShowSuccessMessage(seccessMessage);
+        setShowModal(false)
+        setTimeout(() => {
+          setShowSuccessMessage("");
+          windows.location.href = '/dashboard'
+        }, 2000);
+      } else {
+        setLoginError("Error:", error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setLoginError("Email or password incorrect");
+    }
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('userEmail');
+    setIsLoggedIn(false);
+    window.location.href = '/';
+  };
 
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center" data-theme={theme}>
