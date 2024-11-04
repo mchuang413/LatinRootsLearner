@@ -411,11 +411,10 @@ export default function Home() {
                 ? "Already have an account? Log In"
                 : "No account? Sign up"}
             </button>
-          </motion.div>
+          </motion.div>.
         </motion.div>
       )}
     </div>
   );
 }
-
 
